@@ -11,6 +11,7 @@ const tickets = [
   const messageEl = document.getElementById('message');
   const listEl = document.getElementById('tickets-list');
   const onlyOpenCheckbox = document.getElementById('only-open');
+  const onlyDoneCheckbox = document.getElementById('only-done');
   const filterCategorySelect = document.getElementById('filter-category');
   
   function showMessage(text, isSuccess = false) {
@@ -27,6 +28,7 @@ const tickets = [
     listEl.innerHTML = '';
   
     const onlyOpen = onlyOpenCheckbox.checked;
+    const onlyDone = onlyDoneCheckbox.checked;
     const filterCategory = filterCategorySelect.value;
   
     if (tickets.length === 0) {
@@ -42,7 +44,9 @@ const tickets = [
     for (let i = 0; i < tickets.length; i += 1) {
       const ticket = tickets[i];
   
-      if (onlyOpen && ticket.done !== false) continue;
+      if (onlyOpen && !onlyDone && ticket.done !== false) continue;
+      if (onlyDone && !onlyOpen && ticket.done !== true) continue;
+      if (onlyOpen && onlyDone) continue;
       if (filterCategory && ticket.category !== filterCategory) continue;
   
       visibleCount += 1;
@@ -99,9 +103,17 @@ const tickets = [
     if (visibleCount === 0) {
       const li = document.createElement('li');
       li.className = 'empty';
-      li.textContent = onlyOpen && !filterCategory
-        ? 'Открытых заявок нет'
-        : 'Нет заявок по выбранным фильтрам';
+  
+      if (onlyOpen && onlyDone) {
+        li.textContent = 'Нельзя одновременно показывать только открытые и только выполненные';
+      } else if (onlyOpen && !filterCategory) {
+        li.textContent = 'Открытых заявок нет';
+      } else if (onlyDone && !filterCategory) {
+        li.textContent = 'Выполненных заявок нет';
+      } else {
+        li.textContent = 'Нет заявок по выбранным фильтрам';
+      }
+  
       listEl.append(li);
     }
   }
@@ -121,6 +133,7 @@ const tickets = [
     tickets.push({ title, room, category, done: false });
   
     onlyOpenCheckbox.checked = false;
+    onlyDoneCheckbox.checked = false;
     filterCategorySelect.value = '';
   
     titleInput.value = '';
@@ -132,6 +145,7 @@ const tickets = [
   });
   
   onlyOpenCheckbox.addEventListener('change', renderTickets);
+  onlyDoneCheckbox.addEventListener('change', renderTickets);
   filterCategorySelect.addEventListener('change', renderTickets);
   
   renderTickets();
